@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>深夜の居酒屋 異変探し | 無料ブラウザのホラー暇つぶしゲーム</title>
+<meta name="description" content="閉店後の居酒屋を見回る異変探しゲーム。居酒屋なのにポテチ、刺身の皿にショートケーキ。おかしい物をタップで通報。ダウンロードなし・無料でスマホのブラウザから遊べる、ちょっと怖くて笑えるホラーの暇つぶし。">
+<meta name="theme-color" content="#0b0a0d">
+<meta property="og:type" content="website">
+<meta property="og:title" content="深夜の居酒屋 異変探し">
+<meta property="og:description" content="閉店後の居酒屋、なんかおかしい。居酒屋なのにポテチ。おかしい物をタップで通報する、無料・ダウンロードなしのブラウザホラー。スマホで暇つぶしに。">
+<meta property="og:image" content="https://tom3games.github.io/izakaya-ihen/og.png?v=1">
+<meta property="og:url" content="https://tom3games.github.io/izakaya-ihen/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="深夜の居酒屋 異変探し">
+<meta name="twitter:description" content="居酒屋なのにポテチ。おかしい物をタップで通報する無料ブラウザホラー。">
+<meta name="twitter:image" content="https://tom3games.github.io/izakaya-ihen/og.png?v=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b0a0d'/%3E%3Cellipse cx='32' cy='33' rx='16' ry='20' fill='%23c8372d' stroke='%23f4ecd8' stroke-width='3'/%3E%3Ccircle cx='26' cy='30' r='3' fill='%23f4ecd8'/%3E%3Ccircle cx='38' cy='30' r='3' fill='%23f4ecd8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+<style>
+[hidden]{display:none!important}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#16131a;--paper:#f4ecd8;--red:#c8372d;--red-dk:#6e1813;--yel:#e9b44c;--night:#0b0a0d;--teal:#3f8a7a;
+  --disp:'Dela Gothic One','Hiragino Sans','Yu Gothic',sans-serif;
+}
+html{background:var(--night);touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{height:100%;color:var(--paper);font-family:'Zen Maru Gothic','Hiragino Maru Gothic ProN','Hiragino Sans','Yu Gothic',sans-serif;-webkit-tap-highlight-color:transparent;word-break:auto-phrase;line-break:strict;overflow-wrap:anywhere}
+body{overflow:hidden;background:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button,canvas{touch-action:manipulation}
+button{font-family:inherit;color:inherit;font-size:inherit;-webkit-user-select:none;user-select:none}
+:focus-visible{outline:3px solid var(--yel);outline-offset:3px}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;touch-action:none;image-rendering:pixelated;image-rendering:crisp-edges;filter:saturate(.7) sepia(.12) contrast(1.1)}
+#fx{position:fixed;inset:0;z-index:5;pointer-events:none;overflow:hidden}
+#vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(105% 80% at 50% 50%,transparent 45%,rgba(4,3,6,.85) 100%)}
+#vignette::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+#vignette::after{content:'';position:absolute;inset:-50%;opacity:.12;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain .5s steps(4) infinite}
+@keyframes grain{25%{transform:translate(-6%,4%)}50%{transform:translate(5%,-7%)}75%{transform:translate(-3%,-5%)}}
+@media (prefers-reduced-motion:reduce){#vignette::after{animation:none}}
+
+.view{position:fixed;inset:0;z-index:10;height:100svh;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:max(58px,calc(env(safe-area-inset-top) + 52px)) 16px max(18px,calc(env(safe-area-inset-bottom) + 12px))}
+.btn{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:900;font-size:18px;letter-spacing:.04em;border:3px solid var(--ink);border-radius:16px;min-height:54px;padding:0 20px;cursor:pointer;width:100%;
+  background:var(--paper);color:var(--ink);box-shadow:0 5px 0 var(--ink);transition:transform .06s,box-shadow .06s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn svg{width:24px;height:24px;flex:none;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.btn.red{background:var(--red);color:#fff;font-size:21px;min-height:62px;text-shadow:0 2px 0 var(--red-dk)}
+.btn.yel{background:var(--yel)}
+.btn.ghost{background:rgba(22,19,26,.72);color:var(--paper);border-color:rgba(244,236,216,.5);box-shadow:none;font-size:16px;min-height:48px}
+.row{display:flex;gap:10px;width:100%}
+.row>.btn{flex:1;min-width:0}
+
+#corner{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:40;display:flex;gap:8px}
+#corner button{height:40px;min-width:44px;padding:0 10px;border-radius:12px;border:2px solid rgba(244,236,216,.45);background:rgba(22,19,26,.7);font-weight:900;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#corner svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* タイトル */
+#vTitle{justify-content:space-between;gap:10px;pointer-events:none}
+#vTitle button{pointer-events:auto}
+.logo{text-align:center;line-height:1;position:relative;width:min(560px,100%);z-index:0}
+.logo::before{content:'';position:absolute;inset:-22% -12%;z-index:-1;background:radial-gradient(closest-side,rgba(6,4,8,.85),rgba(6,4,8,0));pointer-events:none}
+.logo .en{display:inline-block;font-weight:900;font-size:clamp(12px,3.4vw,16px);letter-spacing:.1em;color:var(--ink);background:var(--yel);padding:5px 12px 4px;border:3px solid var(--ink);transform:rotate(-3deg);box-shadow:3px 3px 0 var(--ink)}
+.logo .main{display:block;margin-top:12px;font-weight:900;font-size:min(9.6vw,5.6vh,52px);line-height:1.12;color:#fff;letter-spacing:.04em;
+  -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink),0 0 26px rgba(200,55,45,.45)}
+.logo .main b{display:inline-block;margin-top:4px;font-family:var(--disp);font-weight:400;color:#ff5a4e;font-size:1.45em;letter-spacing:.02em;animation:jit 3.2s steps(1) infinite}
+@keyframes jit{0%,92%{transform:none;opacity:1}93%{transform:translate(3px,-1px) skewX(-6deg);opacity:.75}95%{transform:translate(-2px,1px)}97%{transform:none;opacity:.9}}
+@media (prefers-reduced-motion:reduce){.logo .main b{animation:none}}
+.tBottom{width:min(520px,100%);display:flex;flex-direction:column;gap:10px}
+.mc{display:flex;gap:10px;align-items:flex-start;width:100%}
+.mc .face{flex:none;width:46px;height:46px}
+.bubble{position:relative;flex:1;background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:16px;padding:9px 12px;font-weight:700;font-size:14px;line-height:1.55}
+.bubble small{display:block;font-size:11px;color:var(--red-dk);font-weight:900}
+.bubble::before{content:"";position:absolute;left:-11px;top:14px;border:8px solid transparent;border-right-color:var(--ink);border-left:0}
+
+/* 遊び方 */
+#vHow{justify-content:center;gap:14px;background:rgba(6,4,8,.55)}
+.panel{width:min(560px,100%);background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:20px;padding:16px 16px 14px;box-shadow:0 6px 0 var(--ink);min-height:0;overflow:hidden}
+.panel h2{font-weight:900;font-size:22px;text-align:center;margin-bottom:10px}
+.steps{display:flex;flex-direction:column;gap:10px}
+.step{display:flex;gap:10px;align-items:center;font-weight:700;font-size:14px;line-height:1.45}
+.step svg{flex:none;width:46px;height:46px;border:2px solid var(--ink);border-radius:12px;background:#fff;padding:5px;stroke:var(--ink);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.step b{color:var(--red-dk)}
+#vHow .btn{width:min(560px,100%)}
+
+/* プレイ */
+#vPlay{padding:0;pointer-events:none}
+.hudTop{position:absolute;left:0;right:0;top:0;padding:max(8px,env(safe-area-inset-top)) 112px 0 max(10px,env(safe-area-inset-left));display:flex;gap:8px;align-items:flex-start}
+.stChip{flex:none;display:flex;align-items:center;gap:8px;background:rgba(22,19,26,.74);color:var(--paper);border:2px solid rgba(244,236,216,.4);border-radius:12px;padding:5px 10px}
+.stChip b{font-family:var(--disp);font-weight:400;font-size:18px;line-height:1}
+.stChip svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.stChip.tags{color:#ff8a7e}
+.hint{position:absolute;left:50%;top:calc(max(8px,env(safe-area-inset-top)) + 50px);transform:translateX(-50%);max-width:calc(100% - 24px);background:var(--yel);color:var(--ink);border:3px solid var(--ink);border-radius:12px;padding:8px 14px;font-weight:900;font-size:16px;text-align:center;white-space:nowrap;animation:bob .6s ease-in-out infinite alternate;z-index:3}
+@keyframes bob{to{transform:translate(-50%,-5px)}}
+#finger{position:absolute;left:0;top:0;width:54px;height:54px;pointer-events:none;filter:drop-shadow(0 3px 0 rgba(0,0,0,.35));z-index:4;animation:tapf .8s ease-in-out infinite}
+@keyframes tapf{50%{translate:0 8px}}
+#finger svg{width:100%;height:100%}
+.ctl{position:absolute;bottom:max(14px,calc(env(safe-area-inset-bottom) + 8px));display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
+#ctlL{left:max(14px,env(safe-area-inset-left));flex-direction:column;gap:8px}
+#ctlR{right:max(14px,env(safe-area-inset-right));flex-direction:column;align-items:flex-end;gap:8px}
+#ctlR .row2{display:flex;gap:8px}
+.pad{width:76px;height:76px;border-radius:50%;border:3px solid var(--ink);background:rgba(244,236,216,.9);color:var(--ink);box-shadow:0 5px 0 var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;touch-action:none;font-weight:900;font-size:12px;line-height:1.1}
+.pad svg{width:32px;height:32px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.pad.on{transform:translateY(4px);box-shadow:0 1px 0 var(--ink);background:var(--yel)}
+.pad.sm{width:58px;height:58px;font-size:11px}.pad.sm svg{width:24px;height:24px}
+.pad.turn{background:rgba(63,138,122,.92);color:#fff}
+
+/* 晩の報告（判定＋一言の2つだけ） */
+#card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100% - 40px));display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;z-index:6}
+#card .judge{font-family:var(--disp);font-size:58px;line-height:1;color:#fff;-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);transform:rotate(-6deg);animation:stampIn .32s cubic-bezier(.3,1.6,.5,1)}
+#card .judge.ok{color:#7be08f}#card .judge.bad{color:#ff5a4e}
+#card .line{background:rgba(22,19,26,.86);border:2px solid rgba(244,236,216,.5);border-radius:12px;padding:8px 14px;font-weight:900;font-size:17px;text-align:center;line-height:1.4}
+@keyframes stampIn{from{transform:rotate(-6deg) scale(2.4);opacity:0}}
+#fade{position:fixed;inset:0;z-index:30;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:0;pointer-events:none;transition:opacity .45s}
+#fade.on{opacity:1;pointer-events:auto}
+#fade b{font-family:var(--disp);font-weight:400;font-size:54px;color:var(--paper);letter-spacing:.06em}
+#fade span{font-weight:900;font-size:16px;color:rgba(244,236,216,.7)}
+
+/* 演出文字（3D の上） */
+.ono{position:absolute;left:0;top:0;font-family:var(--disp);white-space:nowrap;color:#fff;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink);will-change:transform,opacity}
+.ono.red{color:#ff5a4e}.ono.grn{color:#7be08f}.ono.yel{color:var(--yel)}
+.sb{position:absolute;left:0;top:0;background:#fff;color:var(--ink);border:3px solid var(--ink);border-radius:16px;padding:4px 10px;font-weight:900;font-size:15px;white-space:nowrap;will-change:transform,opacity}
+.sb::after{content:"";position:absolute;left:50%;bottom:-11px;margin-left:-7px;border:7px solid transparent;border-top-color:var(--ink);border-bottom:0}
+.sb.boss{background:var(--ink);color:var(--yel);border-color:var(--yel)}
+.sb.boss.odd{color:#ff8a7e;letter-spacing:.2em}
+
+/* 結果（給料明細） */
+#vResult{background:rgba(6,4,8,.62);justify-content:center;gap:8px;padding-top:max(52px,calc(env(safe-area-inset-top) + 48px))}
+.res{width:min(520px,100%);height:100%;min-height:0;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center}
+#slip{flex:none;display:block;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.55)}
+.resSide{width:100%;display:flex;flex-direction:column;gap:8px;flex:none}
+.res .row .btn{min-height:48px;font-size:16px;padding:0 10px;white-space:nowrap}
+.btn.xpost{background:#000;color:#fff}
+.btn svg.xlogo{fill:currentColor;stroke:none;width:20px;height:20px}
+.reveal{opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+.reveal.on{opacity:1;transform:none}
+.more{display:flex;align-items:center;justify-content:center;gap:6px;align-self:center;min-height:40px;padding:0 14px;border:0;border-radius:99px;background:rgba(22,19,26,.6);color:var(--paper);font-weight:900;font-size:14px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.more svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#moreBox{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:rgba(6,4,8,.75)}
+.moreP{width:min(560px,100%);max-height:100%;overflow:auto;background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:20px;box-shadow:0 7px 0 var(--ink);padding:8px 12px 12px}
+.moreHd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.moreHd h2{font-weight:900;font-size:19px;padding-left:4px}
+.moreX{flex:none;width:44px;height:44px;border:0;background:none;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.moreX svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round}
+.moreL{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.moreL a{display:flex;flex-direction:column;min-width:0;background:#fff;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:12px;overflow:hidden;box-shadow:0 3px 0 var(--ink)}
+.moreL img{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;background:#e9e1cf;border-bottom:2px solid var(--ink)}
+.moreL b{display:block;padding:5px 8px 0;font-size:14px;font-weight:900;line-height:1.3}
+.moreL span{display:block;padding:2px 8px 7px;font-size:11px;font-weight:700;line-height:1.4;color:#5a4f4a}
+
+@media (max-height:700px){
+  .logo .main{font-size:min(9vw,5.2vh,46px)}
+  .bubble{font-size:13px;padding:7px 10px;line-height:1.45}
+  .btn{min-height:48px;font-size:16px}.btn.red{min-height:54px;font-size:19px}
+  .step{font-size:13px}.step svg{width:40px;height:40px}
+  .pad{width:64px;height:64px;font-size:11px}.pad svg{width:26px;height:26px}
+  .pad.sm{width:52px;height:52px}
+  .res .row .btn{min-height:44px;font-size:15px}
+}
+@media (max-height:560px) and (orientation:landscape){
+  .view{padding-top:max(10px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom))}
+  #vTitle{flex-direction:row;align-items:flex-end;justify-content:space-between;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+  #vTitle .logo{width:46%;text-align:left;align-self:flex-start;margin-top:4px}
+  .logo .main{font-size:min(5vw,9vh,44px)}
+  .tBottom{width:min(380px,48%)}
+  .mc .face{display:none}.bubble::before{display:none}
+  #vHow{padding-top:max(52px,env(safe-area-inset-top))}
+  .panel{padding:10px 14px}.panel h2{font-size:18px;margin-bottom:6px}
+  .step{font-size:12.5px}.step svg{width:34px;height:34px}.steps{gap:6px}
+  #vResult{padding-top:max(10px,env(safe-area-inset-top))}
+  .res{width:min(760px,100%);flex-direction:row;align-items:center;gap:14px}
+  .resSide{flex:0 0 auto;width:min(320px,44%);min-width:0}
+  .res .row .btn{font-size:14px;gap:6px;padding:0 8px;min-height:44px}
+  .res .row .btn svg{width:18px;height:18px}
+  .pad{width:58px;height:58px;font-size:10.5px}.pad svg{width:24px;height:24px}
+  .pad.sm{width:48px;height:48px}.pad.sm svg{width:20px;height:20px}
+  #ctlR{flex-direction:row;align-items:flex-end}
+  .hint{top:auto;bottom:max(12px,env(safe-area-inset-bottom));font-size:14px}
+  #card .judge{font-size:44px}
+}
+@media (min-width:900px) and (min-height:561px){ .res{width:min(900px,100%);flex-direction:row;align-items:center;gap:20px} .resSide{flex:0 0 auto;width:340px} }
+#boot-err{position:fixed;inset:auto 8px 8px 8px;z-index:99;background:#fff;color:#b00;font:12px/1.4 monospace;white-space:pre-wrap;padding:10px;border-radius:8px}
+#loading{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:50;font-size:12px;font-weight:900;color:rgba(244,236,216,.75);pointer-events:none}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="vignette"></div>
+<div id="fx"></div>
+<div id="loading">loading…</div>
+
+<div id="corner">
+  <button id="bLang" type="button" aria-label="Language"><span id="langTxt">EN</span></button>
+  <button id="bMute" type="button" aria-label="Sound">
+    <svg id="icOn" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>
+    <svg id="icOff" viewBox="0 0 24 24" hidden><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
+  </button>
+</div>
+
+<main id="vTitle" class="view">
+  <h1 class="logo"><span class="en" data-t="badge"></span><span class="main" data-t="logo"></span></h1>
+  <div class="tBottom">
+    <div class="mc"><svg class="face" viewBox="0 0 48 48"><circle cx="24" cy="26" r="17" fill="#d9b48f" stroke="#16131a" stroke-width="3"/><path d="M8 20c2-12 30-12 32 0" fill="#16131a"/><rect x="7" y="16" width="34" height="6" rx="3" fill="#f4ecd8" stroke="#16131a" stroke-width="2"/><circle cx="18" cy="27" r="2.2" fill="#16131a"/><circle cx="30" cy="27" r="2.2" fill="#16131a"/><path d="M18 35h12" fill="none" stroke="#16131a" stroke-width="2.6" stroke-linecap="round"/></svg><div class="bubble"><small data-t="bossName"></small><span data-t="lead"></span></div></div>
+    <button class="btn red" id="bStart" type="button"><svg viewBox="0 0 24 24"><path d="M9 3h6l-1 7h-4z"/><path d="M8 10h8l-1 11H9z"/></svg><span data-t="start"></span></button>
+    <div class="row"><button class="btn ghost" id="bHow" type="button" data-t="how"></button><button class="btn ghost" id="bMoreT" type="button" data-t="moreS"></button></div>
+  </div>
+</main>
+
+<main id="vHow" class="view" hidden>
+  <div class="panel">
+    <h2 data-t="howT"></h2>
+    <div class="steps">
+      <div class="step"><svg viewBox="0 0 24 24"><path d="M4 20V6l8-3 8 3v14"/><path d="M9 20v-6h6v6"/><path d="M12 3v3"/></svg><span data-t="how1"></span></div>
+      <div class="step"><svg viewBox="0 0 24 24"><path d="M9 11V5a2 2 0 0 1 4 0v6l5 1.2a2.5 2.5 0 0 1 1.8 3L18.6 20a2 2 0 0 1-2 1.5H12a2.5 2.5 0 0 1-2-1L6 15a1.6 1.6 0 0 1 2.4-2z"/></svg><span data-t="how2"></span></div>
+      <div class="step"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg><span data-t="how3"></span></div>
+    </div>
+  </div>
+  <button class="btn" id="bHowBack" type="button" data-t="back"></button>
+</main>
+
+<main id="vPlay" class="view" hidden>
+  <div class="hudTop">
+    <div class="stChip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b id="hClock">23:00</b></div>
+    <div class="stChip tags" id="hTags" hidden><svg viewBox="0 0 24 24"><path d="M4 4h9l7 8-7 8H4z"/><circle cx="8.5" cy="12" r="1.6"/></svg><b id="hTagN">0</b></div>
+  </div>
+  <div class="hint" id="hint" hidden></div>
+  <div id="finger" hidden><svg viewBox="0 0 48 48"><path d="M18 26V9a3 3 0 0 1 6 0v12l9 2c3 .7 4.5 3 4 6l-2 10c-.4 2-2 3-4 3H22c-1.6 0-3-.8-3.8-2.2L12 29c-1-1.8.6-4 2.6-3.3z" fill="#fff" stroke="#16131a" stroke-width="2.6" stroke-linejoin="round"/></svg></div>
+  <div id="card" hidden><div class="judge" id="cJudge"></div><div class="line" id="cLine"></div></div>
+  <div class="ctl" id="ctlL">
+    <button class="pad" id="bFwd" type="button" aria-label="walk"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span data-t="fwd"></span></button>
+    <button class="pad sm" id="bBack" type="button" aria-label="back"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg><span data-t="backS"></span></button>
+  </div>
+  <div class="ctl" id="ctlR">
+    <div class="row2">
+      <button class="pad sm" id="bLookL" type="button" aria-label="look left"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button class="pad sm" id="bLookR" type="button" aria-label="look right"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <button class="pad turn" id="bTurn" type="button" aria-label="turn around"><svg viewBox="0 0 24 24"><path d="M7 20V10a5 5 0 0 1 10 0v4"/><path d="M13 11l4 4 4-4"/></svg><span data-t="turn"></span></button>
+  </div>
+</main>
+
+<main id="vResult" class="view" hidden>
+  <div class="res">
+    <canvas id="slip" width="1080" height="1350"></canvas>
+    <div class="resSide">
+      <div class="row reveal" id="rBtns1"><button class="btn red" id="bAgain" type="button" data-t="again2"></button><button class="btn ghost" id="bTitle" type="button" data-t="toTitle"></button></div>
+      <div class="row reveal" id="rBtns2"><button class="btn yel" id="bSave" type="button"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg><span data-t="save"></span></button><button class="btn xpost" id="bX" type="button"><svg class="xlogo" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg><span data-t="xPost"></span></button></div>
+      <button class="more reveal" id="bMore" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M18 14l3.5 3.5L18 21"/></svg><span data-t="more"></span></button>
+    </div>
+  </div>
+</main>
+<div id="fade"><b id="fBig"></b><span id="fSub"></span></div>
+
+<div id="moreBox" hidden role="dialog" aria-modal="true" aria-labelledby="moreH">
+  <div class="moreP">
+    <div class="moreHd"><h2 id="moreH" data-t="moreT"></h2><button type="button" id="bMoreX" class="moreX"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="moreL" id="moreL"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var opt={passive:false};
+  ['gesturestart','gesturechange','gestureend'].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},opt)});
+  document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},opt);
+  var last=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-last<300&&!(e.target.closest&&e.target.closest('button,a')))e.preventDefault();last=n},opt);
+  document.addEventListener('dblclick',function(e){e.preventDefault()},opt);
+  window.addEventListener('wheel',function(e){if(e.ctrlKey)e.preventDefault()},opt);
+  window.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&['+','-','=','0',';'].indexOf(e.key)>=0)e.preventDefault()});
+  document.addEventListener('contextmenu',function(e){e.preventDefault()});
+})();
+(function(){
+  var errs=[];
+  window.addEventListener('error',function(e){errs.push((e.message||'error')+' @'+(e.filename||'')+':'+(e.lineno||''))});
+  window.addEventListener('unhandledrejection',function(e){errs.push('reject: '+(e.reason&&e.reason.message||e.reason))});
+  setTimeout(function(){
+    if(window.__ihReady) return;
+    var d=document.createElement('div');d.id='boot-err';
+    d.textContent='起動できませんでした / failed to start\n'+(errs.join('\n')||'(no error captured)')+'\n'+navigator.userAgent;
+    document.body.appendChild(d);
+  },7000);
+})();
+</script>
+<script src="data.js?v=1"></script>
+<script type="module" src="game.js?v=1"></script>
+</body>
+</html>
