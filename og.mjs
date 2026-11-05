@@ -1,4 +1,4 @@
-// SNS用サムネ og.png（1200x630）。node og.mjs
+// SNS用サムネ og.jpg（1200x630・300KB以下）。node og.mjs
 // 暗い居酒屋の卓に、なぜかポテチの袋とショートケーキ。通報の赤い札。右にタイトルと一言
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
@@ -12,7 +12,7 @@ await p.goto('http://localhost:5534/'); await p.waitForFunction(() => window.__i
 await p.evaluate(() => document.fonts.ready)
 const s = await p.evaluate(() => {
   IH.dbg.start(5); IH.dbg.pause(true); IH.S.tut = -1
-  IH.dbg.only([{ id: 'chips', t: 2 }, { id: 'cake', t: 2 }, { id: 'xmas', v: 0 }])
+  IH.dbg.only([{ id: 'chips', t: 2 }, { id: 'cake', t: 2 }, { id: 'xmas', v: 0 }, { id: 'moai' }])
   IH.dbg.view('chips', 0.6); IH.S.yaw += 0.42; IH.S.pitch += 0.02; IH.dbg.snap(); IH.dbg.step(1)
   const c = IH.dbg.screen('chips'); IH.dbg.tap(c.x, c.y); IH.dbg.step(3)
   document.querySelectorAll('#fx > *').forEach(e => e.remove())
@@ -30,6 +30,6 @@ await p.evaluate(() => {
   IH.dbg.render()
 })
 await p.waitForTimeout(400)
-await p.screenshot({ path: ROOT + '/og.png' })
+await p.screenshot({ path: ROOT + '/og.jpg', type: 'jpeg', quality: 82 })
 await b.close(); server.kill()
 console.log('ok', JSON.stringify(s))

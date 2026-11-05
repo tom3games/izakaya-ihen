@@ -41,123 +41,7 @@ const S = {
 }
 const TT = () => D.T[S.lang]
 
-// ---------- 音（WebAudio だけ）
-const Snd = {
-  ctx: null, muted: store.get('mute') === '1', next: 0, step: 0, track: null, want: null, switchAt: 0, played: {}, amb: false, nearK: 0, nextTick: 0, nextCar: 0, nextWh: 0,
-  TEMPO: { title: 66, play: 54, end: 72 },
-  init() {
-    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return }
-    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return
-    try {
-      const c = this.ctx = new AC()
-      this.master = c.createGain(); this.master.gain.value = this.muted ? 0 : 0.8; this.master.connect(c.destination)
-      this.bgm = c.createGain(); this.bgm.gain.value = 0.0001; this.bgm.connect(this.master)
-      const len = c.sampleRate * 2; this.noiseBuf = c.createBuffer(1, len, c.sampleRate)
-      const d = this.noiseBuf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1
-      // 冷蔵庫のうなり（常に鳴らし、音量で出し入れ）。異変の近くで音程がずれる
-      this.hum = c.createGain(); this.hum.gain.value = 0.0001; const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 320; lp.connect(this.hum); this.hum.connect(this.master)
-      this.h1 = c.createOscillator(); this.h1.type = 'sawtooth'; this.h1.frequency.value = 50; this.h2 = c.createOscillator(); this.h2.type = 'triangle'; this.h2.frequency.value = 100.4
-      const g1 = c.createGain(); g1.gain.value = 0.35; this.h1.connect(g1); g1.connect(lp); this.h2.connect(lp); this.h1.start(); this.h2.start()
-      if (this.want) { const w = this.want; this.want = null; this.setTrack(w) }
-    } catch (e) { this.ctx = null }
-  },
-  setMute(m) { this.muted = m; store.set('mute', m ? '1' : '0'); if (this.master) this.master.gain.value = m ? 0 : 0.8 },
-  mtof: m => 440 * Math.pow(2, (m - 69) / 12),
-  mark(n) { this.played[n] = (this.played[n] || 0) + 1 },
-  tone(f, t0, dur, type = 'sine', vol = 0.2, dest, f2) {
-    if (!this.ctx) return; const c = this.ctx, o = c.createOscillator(), g = c.createGain()
-    o.type = type; o.frequency.setValueAtTime(f, t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur)
-    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t0 + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur)
-    o.connect(g); g.connect(dest || this.master); o.start(t0); o.stop(t0 + dur + 0.02)
-  },
-  noise(t0, dur, vol, freq, type = 'highpass', dest, q, rise) {
-    if (!this.ctx) return; const c = this.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain()
-    s.buffer = this.noiseBuf; f.type = type; f.frequency.value = freq; if (q) f.Q.value = q
-    if (rise) { g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t0 + dur); g.gain.setValueAtTime(0.0001, t0 + dur + 0.005) }
-    else { g.gain.setValueAtTime(Math.max(0.0002, vol), t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur) }
-    s.connect(f); f.connect(g); g.connect(dest || this.master); s.start(t0, Math.random()); s.stop(t0 + dur + 0.03)
-  },
-  voice(f, t0, dur, vol, formant = 900, f2) {
-    if (!this.ctx) return; const c = this.ctx, o = c.createOscillator(), bp = c.createBiquadFilter(), g = c.createGain()
-    o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur)
-    bp.type = 'bandpass'; bp.frequency.value = formant; bp.Q.value = 3
-    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02); g.gain.setValueAtTime(vol, t0 + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur)
-    o.connect(bp); bp.connect(g); g.connect(this.master); o.start(t0); o.stop(t0 + dur + 0.02)
-  },
-  setTrack(name) {
-    if (this.want === name) return
-    this.want = name; if (!this.ctx) return
-    const now = this.ctx.currentTime, g = this.bgm.gain
-    g.cancelScheduledValues(now); g.setValueAtTime(Math.max(0.0001, g.value), now); g.linearRampToValueAtTime(0.0001, now + 0.3)
-    this.switchAt = now + 0.32
-  },
-  ambient(on) { this.amb = on; if (!this.ctx) return; const n = this.ctx.currentTime; this.hum.gain.cancelScheduledValues(n); this.hum.gain.setTargetAtTime(on ? 0.06 : 0.0001, n, 0.4) },
-  setNear(k) {
-    this.nearK = k; if (!this.ctx) return; const n = this.ctx.currentTime
-    // 異変の近くでは、うなりが半音弱ずれて二重に聞こえる
-    this.h1.frequency.setTargetAtTime(50 * (1 + k * 0.045), n, 0.3); this.h2.frequency.setTargetAtTime(100.4 * (1 - k * 0.06), n, 0.3)
-  },
-  tick() {
-    if (!this.ctx) return; const c = this.ctx, now = c.currentTime
-    if (this.switchAt && now >= this.switchAt) {
-      this.track = this.want; this.step = 0; this.next = now + 0.05; this.switchAt = 0
-      const g = this.bgm.gain; g.cancelScheduledValues(now); g.setValueAtTime(0.0001, now); g.linearRampToValueAtTime(0.3, now + 0.6)
-      if (this.track) this.mark('bgm:' + this.track)
-    }
-    if (this.amb) {
-      // 壁の時計・遠くの車・異変の近くの逆再生のようなささやき
-      if (now > this.nextTick) { this.nextTick = now + 1; this.tone(2400, now + 0.01, 0.03, 'square', 0.012); this.noise(now + 0.01, 0.02, 0.02, 4000) }
-      if (now > this.nextCar) { this.nextCar = now + 11 + Math.random() * 9; this.noise(now, 2.6, 0.035, 500, 'lowpass', null, 0.7, true) }
-      if (this.nearK > 0.3 && now > this.nextWh) { this.nextWh = now + 2.2 + Math.random() * 1.5; this.noise(now, 0.9, 0.05 * this.nearK, 1800, 'bandpass', null, 6, true); this.tone(this.mtof(61), now, 0.9, 'sine', 0.03 * this.nearK, null, this.mtof(67)); this.mark('near') }
-    }
-    if (!this.track || this.switchAt) return
-    const spb = 60 / this.TEMPO[this.track] / 2
-    if (this.next < now) this.next = now + 0.05
-    while (this.next < now + 0.3) { this['p_' + this.track](this.step, this.next); this.next += spb; this.step++ }
-  },
-  bell(n, t, dur = 1.2, vol = 0.05) { this.tone(this.mtof(n), t, dur, 'sine', vol, this.bgm); this.tone(this.mtof(n) * 2.76, t, dur * 0.4, 'sine', vol * 0.25, this.bgm); this.tone(this.mtof(n) * 1.004, t, dur, 'triangle', vol * 0.3, this.bgm) },
-  pad(n, t, dur, vol = 0.03) { this.tone(this.mtof(n), t, dur, 'triangle', vol, this.bgm); this.tone(this.mtof(n) * 1.012, t, dur, 'sine', vol * 0.7, this.bgm) },
-  // タイトル: 少し狂ったオルゴール（短調）
-  p_title(i, t) {
-    const s = i % 16, bar = Math.floor(i / 16) % 4
-    const m = [[69, -1, 72, -1, 76, -1, 75, -1, 72, -1, -1, -1, 69, -1, -1, -1], [67, -1, 71, -1, 74, -1, 73, -1, 71, -1, -1, -1, 67, -1, -1, -1], [65, -1, 69, -1, 72, -1, 71, -1, 69, -1, 68, -1, 65, -1, -1, -1], [64, -1, 68, -1, 71, -1, 70, -1, 68, -1, -1, -1, -1, -1, -1, -1]][bar]
-    if (m[s] > 0) this.bell(m[s] + 12, t, 1.1, 0.045)
-    if (s === 0) this.pad([45, 43, 41, 40][bar], t, 3.6, 0.04)
-  },
-  // 見回り: ほぼ鳴らない低い持続音と、ときどき外れた鈴
-  p_play(i, t) {
-    const s = i % 16, bar = Math.floor(i / 16) % 4
-    if (s === 0) this.pad([38, 38, 37, 39][bar], t, 7, 0.035)
-    if (s === 8 && bar % 2 === 1) this.pad(44, t, 3, 0.02)
-    if (s === 12 && bar === 3) this.bell(87, t, 1.6, 0.018)
-  },
-  p_end(i, t) {
-    const s = i % 16
-    if (s === 0) this.pad(48, t, 4, 0.04)
-    const m = [72, -1, 76, -1, 79, -1, -1, -1, 77, -1, 76, -1, 74, -1, -1, -1]
-    if (m[s] > 0 && Math.floor(i / 16) % 2 === 0) this.bell(m[s], t, 1, 0.05)
-  },
-  sfx(n) {
-    if (!this.ctx) return; this.mark(n)
-    const t = this.ctx.currentTime + 0.01
-    switch (n) {
-      case 'tap': this.tone(900, t, 0.05, 'square', 0.05); break
-      case 'step': this.noise(t, 0.07, 0.05, 260, 'lowpass'); this.tone(70, t, 0.06, 'sine', 0.05); break
-      case 'turn': this.noise(t, 0.18, 0.05, 1200, 'bandpass', null, 1.5); break
-      case 'found': this.noise(t, 0.06, 0.3, 2200, 'bandpass', null, 1); this.tone(880, t + 0.05, 0.12, 'triangle', 0.12); this.tone(1320, t + 0.14, 0.25, 'triangle', 0.12); break
-      case 'wrong': this.tone(140, t, 0.32, 'sawtooth', 0.08, null, 110); this.tone(147, t, 0.32, 'sawtooth', 0.06, null, 104); break
-      case 'again': this.tone(600, t, 0.08, 'sine', 0.05); break
-      case 'boss': this.voice(118, t, 0.32, 0.14, 620, 96); break
-      case 'bossOdd': this.voice(96, t, 0.5, 0.14, 520, 150); this.voice(210, t + 0.1, 0.4, 0.05, 1500, 120); break
-      case 'ok': this.tone(660, t, 0.1, 'triangle', 0.12); this.tone(990, t + 0.1, 0.3, 'triangle', 0.12); break
-      case 'bad': this.tone(330, t, 0.25, 'square', 0.06, null, 300); this.tone(233, t + 0.22, 0.45, 'square', 0.06, null, 200); break
-      case 'night': this.tone(98, t, 2.2, 'sine', 0.16, null, 92); this.tone(147, t, 1.6, 'sine', 0.05); break
-      case 'dawn': for (let k = 0; k < 5; k++) { this.tone(2600 + Math.random() * 800, t + k * 0.17, 0.08, 'sine', 0.05, null, 3600); this.tone(3000, t + k * 0.17 + 0.07, 0.06, 'sine', 0.03, null, 2400) } break
-      case 'stamp': this.noise(t, 0.15, 0.5, 300, 'lowpass'); this.tone(80, t, 0.2, 'sine', 0.4); break
-      case 'arrive': this.tone(520, t, 0.1, 'sine', 0.06); this.tone(780, t + 0.09, 0.2, 'sine', 0.06); break
-    }
-  },
-}
+// 音は sfx.js（再生エンジン）と sound.js（割り当て）。window の Snd を使う
 
 // ---------- 描画の土台
 const canvas = $('#gl')
@@ -246,6 +130,7 @@ function menuTex(seed, odd) {
   mesh(sph(0.05), mt('knob', 0xc0b080, { metalness: 0.6, roughness: 0.3 }), W1 - 0.13, 1.05, 0.42, world)
   const wc = canvasTex(256, 128, (x, w, h) => { x.fillStyle = '#1f2f55'; x.fillRect(0, 0, w, h); x.fillStyle = '#f4ecd8'; x.font = `900 60px ${FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('お手洗い', w / 2, h / 2 + 4) })
   const sign = mesh(new THREE.PlaneGeometry(1.4, 0.7), new THREE.MeshStandardMaterial({ map: wc, emissive: 0xffffff, emissiveMap: wc, emissiveIntensity: 0.35, roughness: 0.9 }), W1 - 0.12, 2.6, 0, world); sign.rotation.y = -Math.PI / 2; sign.userData.tid = 'sign'
+  FIX.sign = { g: sign, normal: wc, odd: null }
   // 天井の蛍光灯（1本はちらつく）
   const tubeOn = new THREE.MeshStandardMaterial({ color: 0xe8f4e0, emissive: 0xd8ffe0, emissiveIntensity: 1.1 })
   for (let x0 = 4, n = 0; x0 < W1; x0 += 10, n++) {
@@ -445,6 +330,12 @@ const BUILD = {
   dagashi: (T) => setAlt(T.sl.otoshi, g => { const cols = [0xffd23a, 0xff5aa0, 0x3a9aff, 0x6ad04a]; for (let k = 0; k < 4; k++) { const b = mesh(box(0.05, 0.012, 0.035), mt('dg' + k, cols[k], { roughness: 0.4 }), Math.cos(k * 1.6) * 0.025, 0.07 + k * 0.008, Math.sin(k * 1.6) * 0.02, g); b.rotation.y = k } const st = mesh(cyl(0.005, 0.005, 0.14, 4), mt(w2, 0xffffff), 0.02, 0.12, 0, g); st.rotation.z = 0.3; mesh(sph(0.032, 10, 8), mt('lolly', 0xff3a5a, { roughness: 0.2 }), 0.045, 0.19, 0, g); for (const [cx, col] of [[-0.03, 0xffd23a], [0.0, 0x9a4ae0]]) mesh(cyl(0.02, 0.02, 0.15, 8), mt('ub' + col, col, { roughness: 0.3 }), cx, 0.1, -0.02, g).rotation.x = 0.25 }) && T.sl.otoshi,
   peas: (T) => setAlt(T.sl.edamame, g => { for (let k = 0; k < 26; k++) { const r = 0.01 + (k % 4) * 0.03, a = k * 2.4; mesh(sph(0.022, 8, 6), mt('pea', 0xb8f060, { roughness: 0.3, emissive: 0x203a00, emissiveIntensity: 0.4 }), Math.cos(a) * r, 0.035 + (3 - k % 4) * 0.012, Math.sin(a) * r * 0.9, g) } }) && T.sl.edamame,
   ketchup: (T) => setAlt(T.sl.shoyu, g => { mesh(cyl(0.042, 0.046, 0.15, 12), mt('ketB', 0xe0201a, { roughness: 0.3 }), 0, 0.075, 0, g); mesh(new THREE.ConeGeometry(0.03, 0.05, 10), mt(w2, 0xffffff), 0, 0.175, 0, g) }) && T.sl.shoyu,
+  // ジョッキの中で金魚が泳いでいる
+  goldfish: (T) => setAlt(T.sl.jokki, g => { mesh(cyl(0.058, 0.055, 0.14, 14), new THREE.MeshStandardMaterial({ color: 0xbfe8f0, roughness: 0.1, transparent: true, opacity: 0.22, depthWrite: false }), 0, 0.075, 0, g); const f = new THREE.Group(); f.position.set(0, 0.2, 0); f.rotation.set(0, 0.5, 1.15); g.add(f); const or = mt('kingyo', 0xff5a1a, { roughness: 0.35, emissive: 0x602000, emissiveIntensity: 0.5 }); mesh(sph(0.03, 10, 8), or, 0, 0, 0, f).scale.set(1.7, 1, 0.8); const tl = mesh(new THREE.ConeGeometry(0.032, 0.05, 8), or, -0.065, 0, 0, f); tl.rotation.z = -Math.PI / 2; tl.scale.z = 0.3; for (const z of [-0.022, 0.022]) mesh(sph(0.007, 6, 4), mt('kEye', 0x0a0a0a), 0.034, 0.008, z, f); f.scale.setScalar(1.5) }) && T.sl.jokki,
+  // 箸立てに孫の手。箸は2本だけ残っている
+  magonote: (T) => setAlt(T.sl.hashi, g => { for (let k = 0; k < 2; k++) { const h = mesh(box(0.008, 0.22, 0.008), mt('hashi', 0xc8a878), (k - 0.5) * 0.03, 0.14, 0.012, g); h.rotation.z = (k - 0.5) * 0.2 } const m = new THREE.Group(); m.position.set(0, 0.04, -0.008); m.rotation.z = -0.16; g.add(m); const bb = mt('take', 0xe0c468, { roughness: 0.45 }); mesh(box(0.024, 0.48, 0.008), bb, 0, 0.24, 0, m); const hand = new THREE.Group(); hand.position.set(0, 0.49, 0.008); hand.rotation.x = 0.35; m.add(hand); mesh(box(0.056, 0.05, 0.012), bb, 0, 0, 0, hand); for (let k = 0; k < 4; k++) { const fi = mesh(box(0.011, 0.04, 0.012), bb, -0.021 + k * 0.014, 0.038, 0.006, hand); fi.rotation.x = 0.5 } }) && T.sl.hashi,
+  // 焼き鳥の串がぜんぶ三色だんご
+  dango: (T) => setAlt(T.sl.yakitori, g => { const cols = [['dgP', 0xf4a2bc], ['dgW', 0xfaf4e4], ['dgG', 0x8cc25a]]; for (let k = 0; k < 3; k++) for (let j = 0; j < 3; j++) mesh(sph(0.0235, 10, 8), mt(cols[j][0], cols[j][1], { roughness: 0.55 }), -0.05 + j * 0.05, 0.034, -0.035 + k * 0.035, g) }) && T.sl.yakitori,
   ball: (T) => { const c = T.cush[1]; c.children[0].visible = false; const b = mesh(sph(0.33, 20, 14), mt('ball', 0xa890e8, { roughness: 0.35 }), 0, 0.33, 0, c); b.userData.alt = true; return { g: c, undo() { c.children[0].visible = true; b.removeFromParent() } } },
   kotatsu: (T) => {
     T.body.visible = false
@@ -474,7 +365,34 @@ const FIXB = {
     FIX.xmasG = g
     return { g, undo() { for (const L of lanterns.side[s]) L.visible = true; g.removeFromParent(); FIX.xmasG = null } }
   },
-  unicycle: () => { FIX.uni.run = true; return { g: FIX.uni.g, undo() { FIX.uni.run = false; const u = FIX.uni; u.g.position.set(u.x0, 0, u.z0); u.g.rotation.set(-0.28, 0, 0) } } },
+  unicycle: () => { FIX.uni.run = true; return { g: FIX.uni.g, moving: true, undo() { FIX.uni.run = false; const u = FIX.uni; u.g.position.set(u.x0, 0, u.z0); u.g.rotation.set(-0.28, 0, 0) } } },
+  // 座敷の奥にモアイ。ねじりはちまきを締めて店員のふりをしている
+  moai: () => {
+    const g = new THREE.Group(); g.position.set(TX(3), ZA_Y, -2.55); g.rotation.y = -0.55; world.add(g); g.userData.tid = 'moaiA'
+    const st = mt('moaiS', 0x857f70, { roughness: 0.95, emissive: 0x1a1812, emissiveIntensity: 0.4 })
+    mesh(box(1.05, 0.95, 0.72), st, 0, 0.48, 0, g); mesh(box(0.92, 1.25, 0.7), st, 0, 1.55, 0, g); mesh(box(0.96, 0.18, 0.78), st, 0, 1.92, 0.03, g)
+    const ns = mesh(box(0.22, 0.62, 0.24), st, 0, 1.56, 0.42, g); ns.rotation.x = -0.1; mesh(box(0.72, 0.1, 0.1), mt('moaiD', 0x3a362e, { roughness: 1 }), 0, 1.13, 0.36, g); mesh(box(0.74, 0.22, 0.72), st, 0, 2.28, 0, g)
+    for (const x of [-0.26, 0.26]) mesh(box(0.24, 0.1, 0.06), mt('moaiD', 0x3a362e), x, 1.76, 0.37, g)
+    mesh(box(1.0, 0.13, 0.78), mt('hachi', 0xf2efe6, { roughness: 0.9 }), 0, 2.13, 0, g); const kn = mesh(box(0.2, 0.08, 0.1), mt('hachi', 0xf2efe6), 0.4, 2.2, 0.36, g); kn.rotation.z = 0.5
+    return { g, undo() { g.removeFromParent() } }
+  },
+  // お掃除ロボが通路を往復している。背中に招き猫が乗っている
+  roomba: () => {
+    const g = new THREE.Group(); world.add(g); g.scale.setScalar(1.35); FIX.robo = { g, spin: 0 }; g.userData.tid = 'roboA'
+    mesh(cyl(0.27, 0.29, 0.1, 22), mt('roboB', 0x1c1e22, { roughness: 0.3, metalness: 0.3 }), 0, 0.06, 0, g); mesh(cyl(0.21, 0.21, 0.012, 20), mt('roboT', 0x4a4e56, { roughness: 0.25, metalness: 0.6 }), 0, 0.116, 0, g); mesh(new THREE.TorusGeometry(0.1, 0.009, 6, 18), glow(0x3affb0, 1.5), 0, 0.126, 0, g).rotation.x = Math.PI / 2
+    const n = new THREE.Group(); n.position.y = 0.13; g.add(n); const wt = mt('nekoW', 0xf6f2e8, { roughness: 0.4 })
+    mesh(sph(0.075, 12, 10), wt, 0, 0.07, 0, n).scale.y = 1.15; mesh(sph(0.065, 12, 10), wt, 0, 0.18, 0, n); for (const x of [-0.04, 0.04]) { const e = mesh(new THREE.ConeGeometry(0.022, 0.04, 6), wt, x, 0.245, 0, n); e.rotation.z = -x * 4 } mesh(cyl(0.05, 0.055, 0.016, 12), mt('nekoR', 0xd8201c), 0, 0.125, 0, n); const pw = mesh(sph(0.024, 8, 6), wt, 0.08, 0.17, 0.02, n); pw.scale.y = 1.3; FIX.robo.paw = pw
+    FIX.robo.tick = () => { const t = S.time * 0.22, x = lerp(5, W1 - 3.5, (Math.sin(t) + 1) / 2), dir = Math.cos(t) > 0 ? 1 : -1; g.position.set(x, 0, 0.7 + Math.sin(S.time * 0.9) * 0.1); g.rotation.y = dir > 0 ? Math.PI / 2 : -Math.PI / 2; pw.position.y = 0.17 + Math.sin(S.time * 6) * 0.018 }
+    FIX.robo.tick()
+    return { g, moving: true, undo() { g.removeFromParent(); FIX.robo = null } }
+  },
+  // お手洗いの札が占いになっている
+  uranai: () => {
+    const f = FIX.sign, m = f.g.material
+    if (!f.odd) f.odd = canvasTex(256, 128, (x, w, h) => { x.fillStyle = '#4a1648'; x.fillRect(0, 0, w, h); x.strokeStyle = '#e9b44c'; x.lineWidth = 6; x.strokeRect(5, 5, w - 10, h - 10); x.fillStyle = '#f7e6a8'; x.font = `900 58px ${FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('占い', w * 0.34, h * 0.42); x.font = `900 26px ${FONT}`; x.fillText('3000円', w * 0.34, h * 0.8); const c = x.createRadialGradient(w * 0.78, h * 0.42, 4, w * 0.78, h * 0.45, 34); c.addColorStop(0, '#fff'); c.addColorStop(0.5, '#9fd4ff'); c.addColorStop(1, '#2a4a90'); x.fillStyle = c; x.beginPath(); x.arc(w * 0.78, h * 0.45, 32, 0, 7); x.fill(); x.fillStyle = '#e9b44c'; x.fillRect(w * 0.78 - 26, h * 0.72, 52, 14) })
+    m.map = f.odd; m.emissiveMap = f.odd; m.needsUpdate = true
+    return { g: f.g, undo() { m.map = f.normal; m.emissiveMap = f.normal; m.needsUpdate = true } }
+  },
   stare: () => { S.stare = true; return { g: null, multi: CUST.map(c => c.g), undo() { S.stare = false; for (const c of CUST) c.g.rotation.y = c.home } } },
 }
 // 当たり判定の箱（見えない）。物の周りを少し大きめに囲む
@@ -784,6 +702,9 @@ function updateScene(dt) {
   // 一輪車が勝手に走る
   const U = FIX.uni
   if (U.run) { const t = S.time * 0.7; U.g.position.set(U.x0 + Math.sin(t) * 1.7, 0, 0.35); U.g.rotation.set(0, Math.cos(t) > 0 ? Math.PI / 2 : -Math.PI / 2, Math.sin(S.time * 5) * 0.06); U.wh.rotation.z = -Math.sin(t) * 1.7 / 0.36 }
+  if (FIX.robo) FIX.robo.tick()
+  // 動く異変は当たり判定の箱も一緒に動かす（止まったままだと何も無い所で「異変あり」になる）
+  for (const a of S.act) if (a.h && a.h.moving) for (const m of a.prox) proxyCenter(m, m.position)
   if (FIX.xmasG) FIX.xmasG.userData.bulbs.forEach((m, k) => { m.emissiveIntensity = (Math.floor(S.time * 3) + k) % 3 ? 1.6 : 0.2 })
   for (const g of lanterns.list) { g.rotation.z = Math.sin(S.time * 1.3 + g.position.x) * 0.04; if (g.userData.flick) g.userData.flick.emissiveIntensity = (Math.sin(S.time * 23 + g.position.x) > 0.6 || Math.sin(S.time * 1.7) > 0.3) ? 0.5 : 0.03 }
   for (const L of lights) {

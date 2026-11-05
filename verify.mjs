@@ -49,7 +49,7 @@ const textCount = q => q.evaluate(() => {
   const els = [document.querySelector('#hint'), ...document.querySelectorAll('#fx .sb,#fx .ono'), document.querySelector('#cJudge'), document.querySelector('#cLine')]
   return els.filter(vis).map(e => e.textContent)
 })
-const SIZES = [[360, 640, 'small'], [390, 844, 'phone'], [844, 390, 'land'], [667, 375, 'land-se'], [768, 1024, 'tab'], [1440, 900, 'pc']]
+const SIZES = [[360, 640, 'small'], [390, 844, 'phone'], [430, 932, 'big'], [844, 390, 'land'], [667, 375, 'land-se'], [768, 1024, 'tab'], [1440, 900, 'pc']]
 const ev = (q, f, a) => q.evaluate(f, a)
 const ONLY = process.env.ONLY
 

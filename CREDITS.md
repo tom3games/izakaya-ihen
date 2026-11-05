@@ -1,0 +1,25 @@
+- snd/step1.mp3: 100 CC0 SFX #2 / rubberduck / CC0
+- snd/step2.mp3: 100 CC0 SFX #2 / rubberduck / CC0
+- snd/step3.mp3: 100 CC0 SFX #2 / rubberduck / CC0
+- snd/step4.mp3: 100 CC0 SFX #2 / rubberduck / CC0
+- snd/tap.mp3: Interface Sounds / Kenney / CC0
+- snd/turn1.mp3: 50 RPG sound effects / Kenney / CC0
+- snd/turn2.mp3: 50 RPG sound effects / Kenney / CC0
+- snd/found1.mp3: Bell dings/chimes / PWL / CC0
+- snd/tagpaper.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/wrong1.mp3: Thwack Sounds / AntumDeluge / CC0
+- snd/wrong2.mp3: Interface Sounds / Kenney / CC0
+- snd/again.mp3: Interface Sounds / Kenney / CC0
+- snd/clock.mp3: Interface Sounds / Kenney / CC0
+- snd/grunt_01〜04.mp3（切り出し）: Little Grunts / crueltyinc / CC0
+- snd/ok.mp3: Interface Sounds / Kenney / CC0
+- snd/bad.mp3: Interface Sounds / Kenney / CC0
+- snd/night1.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/night2.mp3: 50 RPG sound effects / Kenney / CC0
+- snd/dawn.mp3: Crow / fvcalderan / CC0
+- snd/stamp1.mp3: Thwack Sounds / AntumDeluge / CC0
+- snd/stamp2.mp3: 50 RPG sound effects / Kenney / CC0
+- snd/arrive.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/hum.mp3: 100 CC0 SFX #2 / rubberduck / CC0
+- snd/street.mp3: 上の41〜65秒（静かな通り・車が1台通る）を1.5秒の重ね合わせで継ぎ目なしのループにしたもの（22.5秒・16kHz・WAV） / cori / Public domain
+- snd/near.mp3（3秒切り出し）: Static / xhunterko / CC0
