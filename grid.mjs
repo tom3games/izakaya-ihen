@@ -1,4 +1,5 @@
 // shots/see の並べ画像をまとめる。node grid.mjs out.png a b c ...
+import './mute-auto.mjs'  // テスト中は絶対に音を出さない（playwright を無音に差し替え）
 import { chromium } from 'playwright'
 import { readFileSync } from 'node:fs'
 const [out, ...ids] = process.argv.slice(2)

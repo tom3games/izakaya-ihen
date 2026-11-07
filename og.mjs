@@ -1,5 +1,6 @@
 // SNS用サムネ og.jpg（1200x630・300KB以下）。node og.mjs
 // 暗い居酒屋の卓に、なぜかポテチの袋とショートケーキ。通報の赤い札。右にタイトルと一言
+import './mute-auto.mjs'  // テスト中は絶対に音を出さない（playwright を無音に差し替え）
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 import { MUTE_LAUNCH, muteContext } from './mute.mjs'

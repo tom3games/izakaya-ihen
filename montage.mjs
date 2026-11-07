@@ -1,4 +1,5 @@
 // 画像を並べて1枚に（目視用）。node montage.mjs out.png cols cropY cropH a.png b.png ...
+import './mute-auto.mjs'  // テスト中は絶対に音を出さない（playwright を無音に差し替え）
 import { chromium } from 'playwright'
 import { readFileSync } from 'node:fs'
 const [out, cols, cy, ch, ...files] = process.argv.slice(2)

@@ -1,4 +1,5 @@
 // 自動プレイで7晩通して、明細の分布を見る。node sim.mjs（SEEDS=1,2,3 で種を指定）
+import './mute-auto.mjs'  // テスト中は絶対に音を出さない（playwright を無音に差し替え）
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 import { MUTE_LAUNCH, muteContext } from './mute.mjs'

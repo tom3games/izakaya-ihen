@@ -1,3 +1,4 @@
+import './mute-auto.mjs'  // テスト中は絶対に音を出さない（playwright を無音に差し替え）
 import { MUTE_LAUNCH, muteContext } from './mute.mjs'
 // 深夜の居酒屋 異変探し の検証。node verify.mjs（約3分）。ONLY=see で異変の見え方だけ
 import { chromium, webkit } from 'playwright'
