@@ -892,7 +892,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape') closeMore() })
 $('#vResult').addEventListener('pointerdown', e => { if (!e.target.closest('button')) finishReveal() })
 $('#bLang').onclick = () => { Snd.init(); S.lang = S.lang === 'ja' ? 'en' : 'ja'; store.set('lang', S.lang); applyLang(); Snd.sfx('tap') }
 $('#bMute').onclick = () => { Snd.init(); Snd.setMute(!Snd.muted); syncMute() }
-document.addEventListener('visibilitychange', () => { if (Snd.ctx) { if (document.hidden) Snd.ctx.suspend(); else Snd.ctx.resume() } releaseAll() })
+document.addEventListener('visibilitychange', () => { releaseAll() })
 show('vTitle'); Snd.setTrack('title')
 requestAnimationFrame(loop)
 loadChars().then(() => { $('#loading').hidden = true; setupPlayer(); setupCustomers(); setupBoss() })
